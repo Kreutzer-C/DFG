@@ -109,7 +109,7 @@ def MultiASD(preds,target,num_classes,include_bg=False):
         seg = preds['seg']
     else:
         seg = preds
-    seg = F.one_hot(seg,num_classes)#.argmax(dim=0)
+    seg = F.one_hot(seg.argmax(dim=0),num_classes)
     # print(seg.shape,target.shape)
     if include_bg:
         for i in range(num_classes):

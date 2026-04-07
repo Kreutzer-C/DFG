@@ -2,7 +2,7 @@
 experiment_name: 'SAM_UNet_Abdomen_CT2MR_FA'
 data_root: '/workspace/DFG/datasets/chaos'
 save_root: '/workspace/DFG/results/Target_Adapt/'
-source_model_path: ''
+source_model_path: '/workspace/DFG/results/Source_Seg/UNet_Abdomen_CT_Seg/exp_0_time_2026-04-07 12:29:04/saved_models/best_model_epoch_99_dice_0.9336.pth'
 
 target_sites:
 - 'MR'

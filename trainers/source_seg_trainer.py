@@ -1,5 +1,6 @@
 import torch
 import os,random
+import re
 from models import get_model
 
 from dataloaders import MyDataset
@@ -214,7 +215,7 @@ class SourceDomainTrainer():
                     if 'eval_2d' not in self.opt:
                         for i,name in enumerate(val_names):
 
-                            sample_name,index = name.split('_')[0],int(name.split('_')[1])
+                            sample_name = name.split('_')[0]; index = int(re.search(r'(\d+)$', name).group(1))
                             sample_dict[sample_name] = sample_dict.get(sample_name,[]) + [(predict[i].detach().cpu().argmax(dim=0),val_segs[i].detach().cpu(),index)]
                     else:
                         for i,name in enumerate(val_names):

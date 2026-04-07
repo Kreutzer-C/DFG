@@ -2,15 +2,15 @@
 experiment_name: 'SAM_UNet_Abdomen_CT2MR_SAM'
 data_root: '/workspace/DFG/datasets/chaos'
 save_root: '/workspace/DFG/results/Target_Adapt/'
-source_model_path: ''
+source_model_path: '/workspace/DFG/results/Target_Adapt/SAM_UNet_Abdomen_CT2MR_FA/exp_0_time_2026-04-07 13:46:14/saved_models/model_step_110_dice_0.7629.pth'
 target_sites:
 - 'MR'
 resume_dir: ''
 continue_train: False
 total_epochs: 100
 
-refine_dir: '/opt/data/private/DFG/preprocess_refined/ABD/MR'
-refine_postprocess_dir: '/opt/data/private/DFG/preprocess_refined/ABD/MR_postprocess'
+refine_dir: '/workspace/DFG/preprocess_refined/ABD/MR'
+refine_postprocess_dir: '/workspace/DFG/preprocess_refined/ABD/MR_postprocess'
 
 
 random_seed: 999

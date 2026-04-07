@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 import os,random
+import re
 from einops import rearrange
 from models import get_model
 from dataloaders import MyDataset,PatientDataset,MyBatchSampler,MyDataset_refine
@@ -299,18 +300,18 @@ class SAM_Trainer():
             #save refined pl temporally commented
             data_dir = os.path.join(self.opt['data_root'], self.opt['target_sites'][0],'train')
             for i,name in enumerate(val_names):
-                sample_name,index = name.split('_')[0],int(name.split('_')[1])
-                
-                data = np.load(os.path.join(data_dir, name+'.npz'))
-                img = data['image']
-                seg = data['label']
-                pl = pl_batch[i].detach().cpu().numpy()
-                np.savez(os.path.join(self.opt['refine_dir'],'{}_{}.npz'.format(sample_name,index)),image = img,pl = pl,label = seg)
+                sample_name = name.split('_')[0]; index = int(re.search(r'(\d+)$', name).group(1))
+                # Use dataloader-supplied tensors (already resized to 256x256) to avoid
+                # native-resolution mismatches (MR data has mixed 256/288/320 px files)
+                img = val_imgs[i].cpu().numpy().transpose(1, 2, 0)  # (256,256,3)
+                seg = val_segs[i].cpu().numpy()                      # (256,256)
+                pl  = pl_batch[i].detach().cpu().numpy()             # (256,256)
+                np.savez(os.path.join(self.opt['refine_dir'],'{}_{}.npz'.format(sample_name,index)),image=img,pl=pl,label=seg)
                 
             ##
             for i,name in enumerate(val_names):
 
-                sample_name,index = name.split('_')[0],int(name.split('_')[1])
+                sample_name = name.split('_')[0]; index = int(re.search(r'(\d+)$', name).group(1))
                 sample_dict[sample_name] = sample_dict.get(sample_name,[]) + [(preds[i].detach().cpu(),pl_batch[i].detach().cpu(),           
                                                                                val_segs[i].detach().cpu(),index)]
             end_time = time.time()
@@ -367,7 +368,7 @@ class SAM_Trainer():
             end_time = time.time()
             other_time=other_time+(end_time - start_time)
 
-            sample_name,index = name.split('_')[0],int(name.split('_')[1])
+            sample_name = name.split('_')[0]; index = int(re.search(r'(\d+)$', name).group(1))
             sample_dict[sample_name] = sample_dict.get(sample_name,[]) + [(torch.from_numpy(pl),
                                                                             torch.from_numpy(seg).long(),index)]
             
@@ -395,13 +396,14 @@ class SAM_Trainer():
         self.visualizer.print(val_metrics)
         
         for i, k in enumerate(sample_dict.keys()):
-            for index in range(postprocess_list[i].size(2)):
-                pl = postprocess_list[i][:,:,index].numpy()
-                name = '{}_{}.npz'.format(k,index)
+            orig_indices = [t[-1] for t in sample_dict[k]]  # original slice indices (sorted)
+            for j, orig_index in enumerate(orig_indices):
+                pl = postprocess_list[i][:,:,j].numpy()
+                name = '{}_{}.npz'.format(k, orig_index)
                 data = np.load(os.path.join(refine_dir, name))
                 img = data['image']
                 seg = data['label']
-                np.savez(os.path.join(self.opt['refine_postprocess_dir'],name),image = img,pl = pl,label = seg)
+                np.savez(os.path.join(self.opt['refine_postprocess_dir'],name),image=img,pl=pl,label=seg)
         end_time = time.time()
         other_time=other_time+(end_time - start_time)
         #self.visualizer.print(f"postprocess other time: {other_time:.2f} s")
@@ -1036,7 +1038,7 @@ class SAM_Trainer():
                     if 'eval_2d' not in self.opt:
                         for i,name in enumerate(val_names):
 
-                            sample_name,index = name.split('_')[0],int(name.split('_')[1])
+                            sample_name = name.split('_')[0]; index = int(re.search(r'(\d+)$', name).group(1))
                             sample_dict[sample_name] = sample_dict.get(sample_name,[]) + [(preds[i].detach().cpu(),val_segs[i].detach().cpu(),index)]
                     else:
                         for i,name in enumerate(val_names):
