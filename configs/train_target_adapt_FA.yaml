@@ -1,8 +1,8 @@
 # Experiment Specific
 experiment_name: 'SAM_UNet_Abdomen_MR2CT_FA'
-data_root: '/home/zhuaiaa/dfg/data/preprocess/Abdomen_Data'
-save_root: '/home/zhuaiaa/dfg/results/Target_Adapt/'
-source_model_path: '/home/zhuaiaa/dfg/results/Source_Seg/UNet_Abdomen_MR_Seg/exp_6_time_2024-03-07 14:39:37/saved_models/model_epoch_90_dice_0.8821.pth'
+data_root: '/opt/data/private/DFG/datasets/Abdomen_Data_new'
+save_root: '/opt/data/private/DFG/results/Target_Adapt/'
+source_model_path: '/opt/data/private/DFG/results/Source_Seg/UNet_Abdomen_MRI_Seg/exp_2_time_2026-02-12 13:35:17/saved_models/best_model_epoch_47_dice_0.9065.pth'
 
 target_sites:
 - 'CT'

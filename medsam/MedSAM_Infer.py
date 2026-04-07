@@ -65,8 +65,8 @@ def medsam_inference(medsam_model, img_embed, box_1024, H, W):
 
 
 box=[170, 130, 220, 180]
-device="cuda:3"
-checkpoint="/home/zhuaiaa/proaligncl/MICCAI23-ProtoContra-SFDA/medsam/work_dir/MedSAM/medsam_vit_b.pth"
+device="cuda:0"
+checkpoint="/opt/data/private/DFG/medsam/work_dir/MedSAM/medsam_vit_b.pth"
 
 def get_medsam():
     medsam_model = sam_model_registry["vit_b"](checkpoint=checkpoint)

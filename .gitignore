@@ -1,0 +1,7 @@
+__pycache__/
+datasets/
+results/
+preprocess_refined/
+vis_results/
+*.pth
+*.pyc

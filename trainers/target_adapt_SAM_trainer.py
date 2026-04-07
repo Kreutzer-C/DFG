@@ -259,13 +259,13 @@ class SAM_Trainer():
         train_end_time = time.time()
 
         refine_time=refine_end_time-refine_start_time
-        #self.visualizer.print(f"refine time: {refine_time:.2f} s")
+        self.visualizer.print(f"refine time: {refine_time:.2f} s")
 
         postprocess_time=postprocess_end_time-refine_end_time
-        #self.visualizer.print(f"postprocess time: {postprocess_time:.2f} s")
+        self.visualizer.print(f"postprocess time: {postprocess_time:.2f} s")
 
         train_time=train_end_time-train_start_time
-        #self.visualizer.print(f"100epoch total time: {train_time:.2f} s")
+        self.visualizer.print(f"100epoch total time: {train_time:.2f} s")
         
         
     def refine_sam(self):
@@ -1075,7 +1075,7 @@ class SAM_Trainer():
 
                 if val_metrics['dice']['dice_avg'] > self.best_avg_dice:
                     self.best_avg_dice = val_metrics['dice']['dice_avg']
-                    #self.save_best_models(self.iter_counter.epochs_so_far,val_metrics['dice']['dice_avg'])
+                    self.save_best_models(self.iter_counter.epochs_so_far,val_metrics['dice']['dice_avg'])
                 #else:
                 if self.iter_counter.needs_saving():
                     self.save_models(self.iter_counter.epochs_so_far,val_metrics['dice']['dice_avg'])

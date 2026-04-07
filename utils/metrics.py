@@ -89,8 +89,14 @@ def MultiIoUScore(preds,target,num_classes,include_bg=False):
     return iou_score_list
 
 def cal_average_surface_distance(input,target):
-    input = input.cpu().numpy().astype(np.bool8)
-    target = target.cpu().numpy().astype(np.bool8)
+    input = input.cpu().numpy().astype(bool)
+    target = target.cpu().numpy().astype(bool)
+    # 两者均无前景 -> ASD 为 0
+    if not input.any() and not target.any():
+        return 0.0
+    # 一侧无前景 -> 无法计算有效表面距离，返回 NaN 交由上层 nanmean 忽略
+    if not input.any() or not target.any():
+        return np.nan
     surface_distances = surfdist.compute_surface_distances(input, target, spacing_mm=(1.0, 1.0, 1.0))###(1.0, 1.0, 1.0)
     avg_surf_dist = surfdist.compute_average_surface_distance(surface_distances)
     return (avg_surf_dist[0]+avg_surf_dist[1])/2
@@ -173,10 +179,10 @@ def mean_asd(results, gt_seg_maps,num_classes,organ_list):
     for i in range(num_imgs):
         asd = MultiASD(results[i],gt_seg_maps[i],num_classes)
         total_asd_mat.append(asd)
-    total_asd_mat = np.array(total_asd_mat)
+    total_asd_mat = np.array(total_asd_mat, dtype=float)
     for j,organ in enumerate(organ_list):
-        asd_metric['{:}_asd'.format(organ)] = total_asd_mat[:,j].mean()
-    asd_metric['asd_avg'] = total_asd_mat.mean()
+        asd_metric['{:}_asd'.format(organ)] = np.nanmean(total_asd_mat[:,j])
+    asd_metric['asd_avg'] = np.nanmean(total_asd_mat)
     return asd_metric
 
 #####
