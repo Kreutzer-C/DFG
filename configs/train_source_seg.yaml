@@ -1,7 +1,7 @@
 # Experiment Specific
 experiment_name: 'UNet_Abdomen_CT_Seg'
-data_root: '/opt/data/private/DFG/datasets/Abdomen_Data_new'
-save_root: '/opt/data/private/DFG/results/Source_Seg'
+data_root: '/workspace/DFG/datasets/chaos'
+save_root: '/workspace/DFG/results/Source_Seg'
 source_sites:
 - 'CT'
 resume_dir: ''
@@ -9,10 +9,10 @@ continue_train: False
 total_epochs: 100
 random_seed: 999
 organ_list:
-- 'Spleen'
+- 'Liver'
 - 'R.Kidney'
 - 'L.Kidney'
-- 'Liver'
+- 'Spleen'
 
 # Dataloader Setting
 img_size:

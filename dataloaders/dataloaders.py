@@ -35,10 +35,24 @@ class MyDataset(data.Dataset):
                 
     def __getitem__(self, index):
         
-        data = np.load(self.all_data_path[index])
+        # data = np.load(self.all_data_path[index])
+        # name = self.name_list[index]
+        # img = data['image'].astype(np.float32)
+        # seg = data['label']
+
+        raw = np.load(self.all_data_path[index])
         name = self.name_list[index]
-        img = data['image'].astype(np.float32)
-        seg = data['label']
+
+        img = raw[:, :, 0].astype(np.float32)
+        img -= img.min()
+        img /= (img.max() + 1e-8)
+        img = np.repeat(img[None, ...], 3, axis=0).transpose((1, 2, 0))  # (H, W, 3)
+
+        seg = raw[:, :, 1:].copy()
+        for i in range(seg.shape[2]):
+            seg[:, :, i][seg[:, :, i] == 1] = i
+        seg = seg.sum(axis=-1).astype(np.int64)  # (H, W)
+        
         if self.weak_strong_aug:
             transformed_w = self.augmenter_w(image=img, mask=seg)
             img_w = transformed_w['image']
@@ -141,26 +155,25 @@ class PatientDataset(data.Dataset):
             self.patients_slices.update(patients_slices)        
                 
     def __getitem__(self, index):
-        
-        data = np.load(self.all_data_path[index])
+        raw = np.load(self.all_data_path[index])
         name = self.name_list[index]
-        img = data['image'].astype(np.float32)
-        seg = data['label']
-        if self.weak_strong_aug:
-            transformed_w = self.augmenter_w(image=img, mask=seg)
-            img_w = transformed_w['image']
-            seg = transformed_w['mask']
-            transformed_s = self.augmenter_s(image=img_w.numpy().transpose((1,2,0)))
-            img_s = transformed_s['image']
-            return img_w, img_s, seg, name
-        
-        else:
-            transformed = self.augmenter(image=img, mask=seg)
-            img = transformed['image']
-            img = img.to(torch.float32)
-            seg = transformed['mask']
-            seg = seg.to(torch.long)
-            return img, seg, name
+
+        img = raw[:, :, 0].astype(np.float32)
+        img -= img.min()
+        img /= (img.max() + 1e-8)
+        img = np.repeat(img[None, ...], 3, axis=0).transpose((1, 2, 0))  # (H, W, 3)
+
+        seg = raw[:, :, 1:].copy()
+        for i in range(seg.shape[2]):
+            seg[:, :, i][seg[:, :, i] == 1] = i
+        seg = seg.sum(axis=-1).astype(np.int64)  # (H, W)
+
+        transformed = self.augmenter(image=img, mask=seg)
+        img = transformed['image']
+        img = img.to(torch.float32)
+        seg = transformed['mask']
+        seg = seg.to(torch.long)
+        return img, seg, name
 
     def __len__(self):
         return len(self.all_data_path)

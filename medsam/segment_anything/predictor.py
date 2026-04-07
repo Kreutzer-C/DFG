@@ -8,7 +8,8 @@
 import numpy as np
 import torch
 
-from segment_anything.modeling import Sam
+# from segment_anything.modeling import Sam
+from .modeling import Sam
 
 from typing import Optional, Tuple
 

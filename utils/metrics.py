@@ -181,8 +181,10 @@ def mean_asd(results, gt_seg_maps,num_classes,organ_list):
         total_asd_mat.append(asd)
     total_asd_mat = np.array(total_asd_mat, dtype=float)
     for j,organ in enumerate(organ_list):
-        asd_metric['{:}_asd'.format(organ)] = np.nanmean(total_asd_mat[:,j])
-    asd_metric['asd_avg'] = np.nanmean(total_asd_mat)
+        col = total_asd_mat[:,j]
+        asd_metric['{:}_asd'.format(organ)] = float(np.nanmean(col)) if not np.all(np.isnan(col)) else 0.0
+    valid = total_asd_mat[~np.isnan(total_asd_mat)]
+    asd_metric['asd_avg'] = float(valid.mean()) if len(valid) > 0 else 0.0
     return asd_metric
 
 #####

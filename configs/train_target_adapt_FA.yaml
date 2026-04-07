@@ -1,21 +1,21 @@
 # Experiment Specific
-experiment_name: 'SAM_UNet_Abdomen_MR2CT_FA'
-data_root: '/opt/data/private/DFG/datasets/Abdomen_Data_new'
-save_root: '/opt/data/private/DFG/results/Target_Adapt/'
-source_model_path: '/opt/data/private/DFG/results/Source_Seg/UNet_Abdomen_MRI_Seg/exp_2_time_2026-02-12 13:35:17/saved_models/best_model_epoch_47_dice_0.9065.pth'
+experiment_name: 'SAM_UNet_Abdomen_CT2MR_FA'
+data_root: '/workspace/DFG/datasets/chaos'
+save_root: '/workspace/DFG/results/Target_Adapt/'
+source_model_path: ''
 
 target_sites:
-- 'CT'
+- 'MR'
 resume_dir: ''
 continue_train: False
 total_epochs: 5
 
 random_seed: 999
 organ_list:
-- 'Spleen'
+- 'Liver'
 - 'R.Kidney'
 - 'L.Kidney'
-- 'Liver'
+- 'Spleen'
 
 # Dataloader Setting
 patient_level_dataloader: False
@@ -49,7 +49,7 @@ save_steps: 10
 
 #fa
 eval_steps: 5
-display_steps: 4000000 #40
+display_steps: 40000 #40
 save_visuals: False
 
 # test
