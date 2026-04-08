@@ -55,7 +55,11 @@ def MultiDiceScore(preds,target,num_classes,include_bg=False):
         seg = preds['seg']
     else:
         seg = preds
-    seg = F.one_hot(seg.argmax(dim=0),num_classes).float()
+    # Support both float logits (C,H,W[,D]) from test.py
+    # and LongTensor class indices (H,W[,D]) from trainer eval
+    if seg.is_floating_point():
+        seg = seg.argmax(dim=0)
+    seg = F.one_hot(seg.long(),num_classes).float()
 
     if include_bg:
         for i in range(num_classes):
@@ -75,7 +79,11 @@ def MultiIoUScore(preds,target,num_classes,include_bg=False):
         seg = preds['seg']
     else:
         seg = preds
-    seg = F.one_hot(seg.argmax(dim=0),num_classes).float()
+    # Support both float logits (C,H,W[,D]) from test.py
+    # and LongTensor class indices (H,W[,D]) from trainer eval
+    if seg.is_floating_point():
+        seg = seg.argmax(dim=0)
+    seg = F.one_hot(seg.long(),num_classes).float()
 
     if include_bg:
         for i in range(num_classes):
@@ -109,7 +117,11 @@ def MultiASD(preds,target,num_classes,include_bg=False):
         seg = preds['seg']
     else:
         seg = preds
-    seg = F.one_hot(seg.argmax(dim=0),num_classes)
+    # Support both float logits (C,H,W[,D]) from test.py
+    # and LongTensor class indices (H,W[,D]) from trainer eval
+    if seg.is_floating_point():
+        seg = seg.argmax(dim=0)
+    seg = F.one_hot(seg.long(),num_classes)
     # print(seg.shape,target.shape)
     if include_bg:
         for i in range(num_classes):
