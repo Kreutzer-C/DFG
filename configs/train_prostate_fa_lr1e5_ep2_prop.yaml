@@ -1,0 +1,37 @@
+experiment_name: 'UNet_Prostate_FA_lr1e5_ep2_prop'
+data_root: '/opt/data/private/MedSeg_Data_Process/PROSTATE/processed_new'
+save_root: '/opt/data/private/DFG/results/Target_Adapt/'
+dataset: 'PROSTATE'
+target_domain: 'target_1'
+source_model_path: '/opt/data/private/DFG/results/Source_Seg/UNet_Prostate_Source_Seg/exp_0_time_2026-06-21 23:08:18/saved_models/best_model_epoch_71_dice_0.9164.pth'
+target_sites:
+- 'target_1'
+resume_dir: ''
+continue_train: False
+total_epochs: 2
+random_seed: 999
+organ_list:
+- 'Prostate'
+patient_level_dataloader: False
+img_size:
+- 256
+- 256
+batch_size: 16
+num_workers: 8
+arch: 'UNet'
+use_prototype: False
+update_prototype: False
+input_dim: 3
+feat_dim: 32
+output_dim: 64
+num_classes: 2
+num_prototypes: 1
+lr: 0.00001
+nav_t: 1
+beta: 0.001
+s_par: 0.5
+save_steps: 10
+eval_steps: 5
+display_steps: 4000000
+save_visuals: False
+test: False

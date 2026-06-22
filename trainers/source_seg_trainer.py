@@ -3,7 +3,7 @@ import os,random
 import re
 from models import get_model
 
-from dataloaders import MyDataset
+from dataloaders import MyDataset, ProstateDataset
 from torch.utils.data import DataLoader
 from losses import MultiClassDiceLoss,PixelPrototypeCELoss
 
@@ -22,23 +22,37 @@ class SourceDomainTrainer():
     def initialize(self):
 
         ### initialize dataloaders
-        self.train_dataloader = DataLoader(
-            MyDataset(self.opt['data_root'], self.opt['source_sites'], phase='train', split_train=True),
-            batch_size=self.opt['batch_size'],
-            shuffle=True,
-            drop_last=True,
-            num_workers=self.opt['num_workers']
-        )
+        is_prostate = self.opt.get('dataset') == 'PROSTATE'
+        if is_prostate:
+            img_size = tuple(self.opt.get('img_size', (256, 256)))
+            self.train_dataloader = DataLoader(
+                ProstateDataset(self.opt['data_root'], self.opt['source_domain'],
+                                phase='train', split_train=True, img_size=img_size),
+                batch_size=self.opt['batch_size'],
+                shuffle=True, drop_last=True, num_workers=self.opt['num_workers']
+            )
+        else:
+            self.train_dataloader = DataLoader(
+                MyDataset(self.opt['data_root'], self.opt['source_sites'], phase='train', split_train=True),
+                batch_size=self.opt['batch_size'],
+                shuffle=True, drop_last=True, num_workers=self.opt['num_workers']
+            )
 
         print('Length of training dataset: ', len(self.train_dataloader))
 
-        self.val_dataloader = DataLoader(
-            MyDataset(self.opt['data_root'], self.opt['source_sites'], phase='val', split_train=False),
-            batch_size=self.opt['batch_size'],
-            shuffle=False,
-            drop_last=False,
-            num_workers=4
-        )
+        if is_prostate:
+            self.val_dataloader = DataLoader(
+                ProstateDataset(self.opt['data_root'], self.opt['source_domain'],
+                                phase='val', split_train=False, img_size=img_size),
+                batch_size=self.opt['batch_size'],
+                shuffle=False, drop_last=False, num_workers=4
+            )
+        else:
+            self.val_dataloader = DataLoader(
+                MyDataset(self.opt['data_root'], self.opt['source_sites'], phase='val', split_train=False),
+                batch_size=self.opt['batch_size'],
+                shuffle=False, drop_last=False, num_workers=4
+            )
 
         print('Length of validation dataset: ', len(self.val_dataloader))
 

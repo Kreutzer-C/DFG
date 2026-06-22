@@ -1,0 +1,10 @@
+Patients evaluated: 4
+============================================================
+Prostate            0.6799     8.8234
+Mean                0.6799     8.8234
+============================================================
+Per-patient results:
+  I2CVB-Case01: Dice=0.8371, ASSD=12.5526
+  I2CVB-Case07: Dice=0.4356, ASSD=7.9115
+  I2CVB-Case10: Dice=0.6784, ASSD=3.3481
+  I2CVB-Case18: Dice=0.7686, ASSD=11.4815

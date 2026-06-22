@@ -1,0 +1,13 @@
+Patients evaluated: 7
+============================================================
+Prostate            0.7443     1.9026
+Mean                0.7443     1.9026
+============================================================
+Per-patient results:
+  BIDMC-Case02: Dice=0.6266, ASSD=2.5226
+  BIDMC-Case06: Dice=0.2162, ASSD=6.7932
+  BIDMC-Case11: Dice=0.8636, ASSD=1.1082
+  HK-Case46: Dice=0.8641, ASSD=0.7349
+  UCL-Case27: Dice=0.9182, ASSD=0.4684
+  UCL-Case29: Dice=0.9365, ASSD=0.3975
+  UCL-Case37: Dice=0.7850, ASSD=1.2931

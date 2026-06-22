@@ -4,7 +4,7 @@ import os,random
 import re
 from einops import rearrange
 from models import get_model
-from dataloaders import MyDataset,PatientDataset,MyBatchSampler
+from dataloaders import MyDataset,PatientDataset,MyBatchSampler,ProstateDataset
 from torch.utils.data import DataLoader
 from losses import My_ProtoLoss
 
@@ -24,7 +24,16 @@ class FA_Trainer():
     def initialize(self):
 
         ### initialize dataloaders
-        if self.opt['patient_level_dataloader']:
+        is_prostate = self.opt.get('dataset') == 'PROSTATE'
+        if is_prostate:
+            img_size = tuple(self.opt.get('img_size', (256, 256)))
+            self.train_dataloader = DataLoader(
+                ProstateDataset(self.opt['data_root'], self.opt['target_domain'],
+                                phase='train', split_train=True, img_size=img_size),
+                batch_size=self.opt['batch_size'],
+                shuffle=True, drop_last=True, num_workers=self.opt['num_workers']
+            )
+        elif self.opt['patient_level_dataloader']:
             train_dataset = PatientDataset(self.opt['data_root'], self.opt['target_sites'], phase='train', split_train=True)
             patient_sampler = MyBatchSampler(train_dataset,self.opt['batch_size'])
             self.train_dataloader = DataLoader(train_dataset,batch_sampler=patient_sampler,num_workers=self.opt['num_workers'])
@@ -32,20 +41,24 @@ class FA_Trainer():
             self.train_dataloader = DataLoader(
                 MyDataset(self.opt['data_root'], self.opt['target_sites'], phase='train', split_train=True),
                 batch_size=self.opt['batch_size'],
-                shuffle=True,
-                drop_last=True,
-                num_workers=self.opt['num_workers']
+                shuffle=True, drop_last=True, num_workers=self.opt['num_workers']
             )
 
         print('Length of training dataset: ', len(self.train_dataloader))
 
-        self.val_dataloader = DataLoader(
-            MyDataset(self.opt['data_root'], self.opt['target_sites'], phase='val', split_train=False),
-            batch_size=self.opt['batch_size'],
-            shuffle=False,
-            drop_last=False,
-            num_workers=4
-        )
+        if is_prostate:
+            self.val_dataloader = DataLoader(
+                ProstateDataset(self.opt['data_root'], self.opt['target_domain'],
+                                phase='val', split_train=False, img_size=img_size),
+                batch_size=self.opt['batch_size'],
+                shuffle=False, drop_last=False, num_workers=4
+            )
+        else:
+            self.val_dataloader = DataLoader(
+                MyDataset(self.opt['data_root'], self.opt['target_sites'], phase='val', split_train=False),
+                batch_size=self.opt['batch_size'],
+                shuffle=False, drop_last=False, num_workers=4
+            )
 
         print('Length of validation dataset: ', len(self.val_dataloader))
 

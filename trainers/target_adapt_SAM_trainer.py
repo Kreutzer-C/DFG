@@ -4,7 +4,7 @@ import os,random
 import re
 from einops import rearrange
 from models import get_model
-from dataloaders import MyDataset,PatientDataset,MyBatchSampler,MyDataset_refine
+from dataloaders import MyDataset,PatientDataset,MyBatchSampler,MyDataset_refine,ProstateDataset,ProstateDataset_refine
 from torch.utils.data import DataLoader
 from losses import ProtoLoss,MultiClassDiceLoss,PixelPrototypeCELoss
 
@@ -42,11 +42,11 @@ class SAM_Trainer():
         self.predefined_featuresize = 256#int(256 / self.ratio)
         self.ind_from, self.ind_to = get_indices_of_pairs(radius=self.radius, size=(self.predefined_featuresize, self.predefined_featuresize))
         self.ind_from = torch.from_numpy(self.ind_from); self.ind_to = torch.from_numpy(self.ind_to)
-        self.refine_order = [1,2,3,4]#[2,3,1,4]
+        self.refine_order = opt.get('refine_order', [1,2,3,4])
         #self.pixel_thresh = {1:60,2:30,3:20,4:100}
         self.aff_thresh = 0.99 #opt['aff_thresh']
         self.bbox_margin = 3
-        self.diffuse_max_step = [0,25,20,20,35]#determined by estimated max area of each class [0,25,20,20,35][0,20,15,15,30]
+        self.diffuse_max_step = opt.get('diffuse_max_step', [0,25,20,20,35])
         self.medsam_model = get_medsam()
         self.tol_twostep = 35
         self.tol_onestep = 15
@@ -56,7 +56,7 @@ class SAM_Trainer():
         #self.ratio_2 = int(256/self.predefined_featuresize_2)
         self.ind_from_2, self.ind_to_2 = get_indices_of_pairs(radius=self.radius_2, size=(self.predefined_featuresize_2, self.predefined_featuresize_2))
         self.ind_from_2 = torch.from_numpy(self.ind_from_2); self.ind_to_2 = torch.from_numpy(self.ind_to_2)
-        self.diffuse_max_step_2 = [0,25,20,20,35]#determined by estimated max area of each class [0,25,20,20,35][0,20,15,15,30]
+        self.diffuse_max_step_2 = opt.get('diffuse_max_step_2', [0,25,20,20,35])
         self.dist_thresh_2 = 2.5
         self.max_dist_2 = 0.35#opt['max_dist_2']
         self.tol_2_twostep = 30
@@ -70,7 +70,17 @@ class SAM_Trainer():
     def initialize(self):
 
         ### initialize dataloaders
-        if self.opt['patient_level_dataloader']:
+        is_prostate = self.opt.get('dataset') == 'PROSTATE'
+        if is_prostate:
+            img_size = tuple(self.opt.get('img_size', (256, 256)))
+            train_ds = ProstateDataset(self.opt['data_root'], self.opt['target_domain'],
+                                       phase='val', split_train=True, img_size=img_size)
+            self.train_dataloader = DataLoader(
+                train_ds, batch_size=self.opt['batch_size'],
+                shuffle=True, drop_last=False, num_workers=self.opt['num_workers']
+            )
+            self._prostate_filepath_map = train_ds.filepath_map
+        elif self.opt['patient_level_dataloader']:
             train_dataset = PatientDataset(self.opt['data_root'], self.opt['target_sites'], phase='train', split_train=True)
             patient_sampler = MyBatchSampler(train_dataset,self.opt['batch_size'])
             self.train_dataloader = DataLoader(train_dataset,batch_sampler=patient_sampler,num_workers=self.opt['num_workers'])
@@ -78,20 +88,24 @@ class SAM_Trainer():
             self.train_dataloader = DataLoader(
                 MyDataset(self.opt['data_root'], self.opt['target_sites'], phase='val', split_train=True),
                 batch_size=self.opt['batch_size'],
-                shuffle=True,
-                drop_last=False,
-                num_workers=self.opt['num_workers']
+                shuffle=True, drop_last=False, num_workers=self.opt['num_workers']
             )
 
         print('Length of training dataset: ', len(self.train_dataloader))
 
-        self.val_dataloader = DataLoader(
-            MyDataset(self.opt['data_root'], self.opt['target_sites'], phase='val', split_train=False),
-            batch_size=self.opt['batch_size'],
-            shuffle=False,
-            drop_last=False,
-            num_workers=4
-        )
+        if is_prostate:
+            self.val_dataloader = DataLoader(
+                ProstateDataset(self.opt['data_root'], self.opt['target_domain'],
+                                phase='val', split_train=False, img_size=img_size),
+                batch_size=self.opt['batch_size'],
+                shuffle=False, drop_last=False, num_workers=4
+            )
+        else:
+            self.val_dataloader = DataLoader(
+                MyDataset(self.opt['data_root'], self.opt['target_sites'], phase='val', split_train=False),
+                batch_size=self.opt['batch_size'],
+                shuffle=False, drop_last=False, num_workers=4
+            )
 
         print('Length of validation dataset: ', len(self.val_dataloader))
 
@@ -118,23 +132,36 @@ class SAM_Trainer():
     def initialize_train(self):
 
         ### initialize dataloaders
-        self.train_dataloader = DataLoader(
-            MyDataset_refine(self.opt['refine_postprocess_dir'], phase='train'),#'refine_dir'
-            batch_size=self.opt['batch_size'],
-            shuffle=True,
-            drop_last=True,
-            num_workers=self.opt['num_workers']
-        )
+        is_prostate = self.opt.get('dataset') == 'PROSTATE'
+        if is_prostate:
+            img_size = tuple(self.opt.get('img_size', (256, 256)))
+            self.train_dataloader = DataLoader(
+                ProstateDataset_refine(self.opt['refine_postprocess_dir'], phase='train', img_size=img_size),
+                batch_size=self.opt['batch_size'],
+                shuffle=True, drop_last=True, num_workers=self.opt['num_workers']
+            )
+        else:
+            self.train_dataloader = DataLoader(
+                MyDataset_refine(self.opt['refine_postprocess_dir'], phase='train'),
+                batch_size=self.opt['batch_size'],
+                shuffle=True, drop_last=True, num_workers=self.opt['num_workers']
+            )
 
         print('Length of training dataset: ', len(self.train_dataloader))
 
-        self.val_dataloader = DataLoader(
-            MyDataset(self.opt['data_root'], self.opt['target_sites'], phase='val', split_train=False),
-            batch_size=self.opt['batch_size'],
-            shuffle=False,
-            drop_last=False,
-            num_workers=4
-        )
+        if is_prostate:
+            self.val_dataloader = DataLoader(
+                ProstateDataset(self.opt['data_root'], self.opt['target_domain'],
+                                phase='val', split_train=False, img_size=img_size),
+                batch_size=self.opt['batch_size'],
+                shuffle=False, drop_last=False, num_workers=4
+            )
+        else:
+            self.val_dataloader = DataLoader(
+                MyDataset(self.opt['data_root'], self.opt['target_sites'], phase='val', split_train=False),
+                batch_size=self.opt['batch_size'],
+                shuffle=False, drop_last=False, num_workers=4
+            )
 
         print('Length of validation dataset: ', len(self.val_dataloader))
 
@@ -298,15 +325,28 @@ class SAM_Trainer():
             #sys.exit()
             start_time = time.time()
             #save refined pl temporally commented
-            data_dir = os.path.join(self.opt['data_root'], self.opt['target_sites'][0],'train')
-            for i,name in enumerate(val_names):
-                sample_name = name.split('_')[0]; index = int(re.search(r'(\d+)$', name).group(1))
-                # Use dataloader-supplied tensors (already resized to 256x256) to avoid
-                # native-resolution mismatches (MR data has mixed 256/288/320 px files)
-                img = val_imgs[i].cpu().numpy().transpose(1, 2, 0)  # (256,256,3)
-                seg = val_segs[i].cpu().numpy()                      # (256,256)
-                pl  = pl_batch[i].detach().cpu().numpy()             # (256,256)
-                np.savez(os.path.join(self.opt['refine_dir'],'{}_{}.npz'.format(sample_name,index)),image=img,pl=pl,label=seg)
+            is_prostate = self.opt.get('dataset') == 'PROSTATE'
+            if is_prostate:
+                for i,name in enumerate(val_names):
+                    sample_name = name.split('_')[0]; index = int(re.search(r'(\d+)$', name).group(1))
+                    orig_path = self._prostate_filepath_map[name]
+                    dd = np.load(orig_path)
+                    raw_img = dd['img'].astype(np.float32)
+                    if raw_img.ndim == 2:
+                        raw_img = np.stack([raw_img, raw_img, raw_img], axis=-1)
+                    seg = dd['label']
+                    pl = pl_batch[i].detach().cpu().numpy()
+                    if pl.shape != seg.shape:
+                        from skimage import transform as sk_transform
+                        pl = sk_transform.resize(pl.astype(float), seg.shape, order=0, preserve_range=True, anti_aliasing=False).astype(pl.dtype)
+                    np.savez(os.path.join(self.opt['refine_dir'],'{}_{}.npz'.format(sample_name,index)),image=raw_img,pl=pl,label=seg)
+            else:
+                for i,name in enumerate(val_names):
+                    sample_name = name.split('_')[0]; index = int(re.search(r'(\d+)$', name).group(1))
+                    img = val_imgs[i].cpu().numpy().transpose(1, 2, 0)
+                    seg = val_segs[i].cpu().numpy()
+                    pl  = pl_batch[i].detach().cpu().numpy()
+                    np.savez(os.path.join(self.opt['refine_dir'],'{}_{}.npz'.format(sample_name,index)),image=img,pl=pl,label=seg)
                 
             ##
             for i,name in enumerate(val_names):

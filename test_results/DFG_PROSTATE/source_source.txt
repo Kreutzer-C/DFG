@@ -1,0 +1,27 @@
+/opt/data/private/DFG/test_prostate.py:38: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(args.model_path, map_location='cpu')
+Domain: source, slices: 161
+Inference:   0%|          | 0/11 [00:00<?, ?it/s]Inference:   9%|▉         | 1/11 [00:00<00:06,  1.53it/s]Inference:  27%|██▋       | 3/11 [00:00<00:01,  4.74it/s]Inference:  45%|████▌     | 5/11 [00:00<00:00,  7.73it/s]Inference:  64%|██████▎   | 7/11 [00:01<00:00,  6.87it/s]Inference:  91%|█████████ | 10/11 [00:01<00:00,  9.96it/s]Inference: 100%|██████████| 11/11 [00:01<00:00,  7.72it/s]
+Patients evaluated: 12
+
+============================================================
+Class                 Dice       ASSD
+------------------------------------------------------------
+Prostate            0.9164     0.5264
+------------------------------------------------------------
+Mean                0.9164     0.5264
+============================================================
+
+Per-patient results:
+  BMC-Case10: Dice=0.8966, ASSD=0.8247
+  BMC-Case13: Dice=0.9106, ASSD=0.4627
+  BMC-Case17: Dice=0.9165, ASSD=0.6791
+  BMC-Case21: Dice=0.9086, ASSD=0.8188
+  BMC-Case26: Dice=0.9245, ASSD=0.5814
+  RUNMC-Case01: Dice=0.9369, ASSD=0.3808
+  RUNMC-Case06: Dice=0.8503, ASSD=0.5933
+  RUNMC-Case07: Dice=0.8849, ASSD=0.6610
+  RUNMC-Case08: Dice=0.9373, ASSD=0.4648
+  RUNMC-Case14: Dice=0.9307, ASSD=0.3804
+  RUNMC-Case15: Dice=0.9425, ASSD=0.2848
+  RUNMC-Case17: Dice=0.9571, ASSD=0.1848

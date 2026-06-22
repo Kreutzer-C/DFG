@@ -1,0 +1,22 @@
+/opt/data/private/DFG/test_prostate.py:38: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(args.model_path, map_location='cpu')
+Domain: target_1, slices: 123
+Inference:   0%|          | 0/8 [00:00<?, ?it/s]Inference:  12%|█▎        | 1/8 [00:00<00:04,  1.53it/s]Inference:  38%|███▊      | 3/8 [00:00<00:01,  4.61it/s]Inference:  62%|██████▎   | 5/8 [00:00<00:00,  7.43it/s]Inference:  88%|████████▊ | 7/8 [00:01<00:00,  9.87it/s]Inference: 100%|██████████| 8/8 [00:01<00:00,  7.20it/s]
+Patients evaluated: 7
+
+============================================================
+Class                 Dice       ASSD
+------------------------------------------------------------
+Prostate            0.6976     2.8041
+------------------------------------------------------------
+Mean                0.6976     2.8041
+============================================================
+
+Per-patient results:
+  BIDMC-Case02: Dice=0.6311, ASSD=3.6376
+  BIDMC-Case06: Dice=0.3460, ASSD=8.4661
+  BIDMC-Case11: Dice=0.8694, ASSD=1.1865
+  HK-Case46: Dice=0.7902, ASSD=1.4915
+  UCL-Case27: Dice=0.8093, ASSD=1.1631
+  UCL-Case29: Dice=0.7293, ASSD=2.0451
+  UCL-Case37: Dice=0.7076, ASSD=1.6390

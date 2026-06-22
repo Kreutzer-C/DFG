@@ -1,0 +1,62 @@
+# PROSTATE SAM Adaptation
+experiment_name: 'UNet_Prostate_Source2Target1_SAM_fixedFA'
+data_root: '/opt/data/private/MedSeg_Data_Process/PROSTATE/processed_new'
+save_root: '/opt/data/private/DFG/results/Target_Adapt/'
+dataset: 'PROSTATE'
+target_domain: 'target_1'
+source_model_path: '/opt/data/private/DFG/results/Target_Adapt/UNet_Prostate_FA_lr1e5_ep2_prop/exp_0_time_2026-06-22 13:23:37/saved_models/model_step_10_dice_0.7980.pth'
+
+target_sites:
+- 'target_1'
+resume_dir: ''
+continue_train: False
+total_epochs: 100
+
+refine_dir: '/opt/data/private/DFG/preprocess_refined/PROSTATE/target_1'
+refine_postprocess_dir: '/opt/data/private/DFG/preprocess_refined/PROSTATE/target_1_postprocess'
+
+random_seed: 999
+organ_list:
+- 'Prostate'
+
+refine_order:
+- 1
+diffuse_max_step:
+- 0
+- 30
+diffuse_max_step_2:
+- 0
+- 30
+
+# Dataloader Setting
+patient_level_dataloader: False
+img_size:
+- 256
+- 256
+batch_size: 8
+num_workers: 8
+
+# Model
+arch: 'UNet'
+use_prototype: False
+update_prototype: False
+input_dim: 3
+feat_dim: 32
+output_dim: 64
+num_classes: 2
+num_prototypes: 1
+
+# Optim parameters
+lr: 0.0001
+
+ce_ignore_index: -1
+dice_ignore_index: 0
+
+# display
+save_epochs: 10
+eval_epochs: 5
+display_steps: 40000
+save_visuals: false
+
+# test
+test: False
